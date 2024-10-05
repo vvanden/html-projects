@@ -9,10 +9,6 @@
             height: 100vh;
             width: 100%;
         }
-        /* Optionally style the bus icon */
-        .leaflet-marker-icon {
-            transform-origin: center;
-        }
     </style>
     <!-- Include Leaflet.js for the map -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
@@ -20,7 +16,6 @@
 </head>
 <body>
     <div id="map"></div>
-
     <script>
         // Initialize the map and set the view to a default location
         var map = L.map('map').setView([43.008837, -81.247693], 15);
@@ -28,51 +23,49 @@
         // Load map tiles from OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19
-        }).addTo(map);
-
+        }).addTo(map);        
+        
         // Function to fetch and filter JSON data for Route 27
         async function fetchBusData() {
-            try {
-                const response = await fetch('http://gtfs.ltconline.ca/Vehicle/VehiclePositions.json');
-                
-                // Check if the response is okay
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-
-                const data = await response.json();
-                
-                // Clear all existing markers
-                map.eachLayer(function(layer){
-                    if( layer instanceof L.Marker ){
-                        map.removeLayer(layer);
-                    }
-                });
-
-                // Filter the data for Route 27
-                data.entity.forEach(bus => {
-                    if(bus.vehicle.trip.route_id === "27") {
-                        const position = bus.vehicle.position;
-                        const bearing = position.bearing;
-
-                        // Add a marker with a rotation based on the bearing (bus direction)
-                        var busIcon = L.icon({
-                            iconUrl: 'bus-icon.png', // Use a custom bus icon
-                            iconSize: [32, 32],      // Size of the icon
-                            iconAnchor: [16, 16],    // Point of the icon that corresponds to the marker's location
-                        });
-
-                        const marker = L.marker([position.latitude, position.longitude], { icon: busIcon })
-                            .addTo(map)
-                            .bindPopup(`Bus ID: ${bus.vehicle.vehicle.label} <br> Bearing: ${bearing}°`);
-                        
-                        // Apply rotation to the marker
-                        marker.getElement().style.transform += ` rotate(${bearing}deg)`;
-                    }
-                });
-            } catch (error) {
-                console.error('Error fetching bus data:', error);
+            const corsProxy = 'https://corsproxy.io/?';
+            const apiUrl = 'http://gtfs.ltconline.ca/Vehicle/VehiclePositions.json';
+            const response = await fetch(corsProxy + encodeURIComponent(apiUrl));
+            
+            // Check if response is OK
+            if (!response.ok) {
+                console.error('Failed to fetch the data:', response.statusText);
+                return;
             }
+
+            const data = await response.json();
+            
+            // Clear all existing markers
+            map.eachLayer(function(layer){
+                if(layer instanceof L.Marker){
+                    map.removeLayer(layer);
+                }
+            });
+
+            // Filter the data for Route 27
+            data.entity.forEach(bus => {
+                if (bus.vehicle.trip.route_id === "27") {
+                    const position = bus.vehicle.position;
+                    const bearing = position.bearing;
+                    
+                    // Add a marker with a rotation based on the bearing (bus direction)
+                    var busIcon = L.icon({
+                        iconUrl: 'bus-icon.png', // Use a custom bus icon
+                        iconSize: [32, 32],      // size of the icon
+                        iconAnchor: [16, 16],    // point of the icon which will correspond to marker's location
+                    });
+                    const marker = L.marker([position.latitude, position.longitude], { icon: busIcon })
+                        .addTo(map)
+                        .bindPopup(`Bus ID: ${bus.vehicle.vehicle.label} <br> Bearing: ${bearing}°`);
+                    
+                    // Apply rotation to the marker
+                    marker.getElement().style.transform += ` rotate(${bearing}deg)`;
+                }
+            });
         }
 
         // Refresh data every 30 seconds
