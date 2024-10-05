@@ -53,12 +53,8 @@
 
             const data = await response.json();
             
-            // Get current time and format it
-            const now = new Date();
-            const timestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
             // Clear bus-info display area
-            document.getElementById('bus-info').innerHTML = `<strong>Last Updated:</strong> ${timestamp} <br><br>`;
+            document.getElementById('bus-info').innerHTML = "";
 
             // Filter the data for Route 27
             data.entity.forEach(bus => {
@@ -66,6 +62,10 @@
                     const position = bus.vehicle.position;
                     const busId = bus.vehicle.vehicle.label;
                     const bearing = position.bearing;
+                    
+                    // Convert the timestamp from Unix format to a readable date/time
+                    const busTimestamp = new Date(bus.vehicle.timestamp * 1000);  // assuming timestamp is in seconds
+                    const formattedBusTime = busTimestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
                     // Check if marker for this bus already exists
                     if (!busMarkers[busId]) {
@@ -80,7 +80,7 @@
                             icon: busIcon,
                             rotationAngle: bearing // Set initial rotation based on bearing
                         }).addTo(map)
-                          .bindPopup(`Bus ID: ${busId} <br> Bearing: ${bearing}°`);
+                          .bindPopup(`Bus ID: ${busId} <br> Bearing: ${bearing}° <br> Timestamp: ${formattedBusTime}`);
 
                         // Store the marker in the busMarkers object
                         busMarkers[busId] = marker;
@@ -91,12 +91,13 @@
                         marker.setRotationAngle(bearing); // Update the rotation angle
                     }
 
-                    // Append bus information to the display div
+                    // Append bus information to the display div with timestamp
                     document.getElementById('bus-info').innerHTML += `
                         <strong>Bus ID:</strong> ${busId} 
                         | <strong>Latitude:</strong> ${position.latitude} 
                         | <strong>Longitude:</strong> ${position.longitude} 
-                        | <strong>Bearing:</strong> ${bearing}° <br>
+                        | <strong>Bearing:</strong> ${bearing}° 
+                        | <strong>Timestamp:</strong> ${formattedBusTime} <br>
                     `;
                 }
             });
