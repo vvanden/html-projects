@@ -6,8 +6,14 @@
     <title>Bus Tracker - Route 27</title>
     <style>
         #map {
-            height: 100vh;
+            height: 80vh;
             width: 100%;
+        }
+        #bus-info {
+            height: 20vh;
+            padding: 10px;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
         }
     </style>
     <!-- Include Leaflet.js for the map -->
@@ -18,6 +24,8 @@
 </head>
 <body>
     <div id="map"></div>
+    <div id="bus-info"></div> <!-- This will display bus information -->
+    
     <script>
         // Initialize the map and set the view to a default location
         var map = L.map('map').setView([43.008837, -81.247693], 15);
@@ -43,6 +51,9 @@
             }
 
             const data = await response.json();
+
+            // Clear bus-info display area
+            document.getElementById('bus-info').innerHTML = '';
 
             // Filter the data for Route 27
             data.entity.forEach(bus => {
@@ -74,6 +85,14 @@
                         marker.setLatLng([position.latitude, position.longitude]);
                         marker.setRotationAngle(bearing); // Update the rotation angle
                     }
+
+                    // Append bus information to the display div
+                    document.getElementById('bus-info').innerHTML += `
+                        <strong>Bus ID:</strong> ${busId} 
+                        | <strong>Latitude:</strong> ${position.latitude} 
+                        | <strong>Longitude:</strong> ${position.longitude} 
+                        | <strong>Bearing:</strong> ${bearing}° <br>
+                    `;
                 }
             });
         }
