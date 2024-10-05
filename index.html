@@ -24,6 +24,8 @@
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19
         }).addTo(map);
+
+        <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
         
         // Function to fetch and filter JSON data for Route 27
         async function fetchBusData() {
