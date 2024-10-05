@@ -14,6 +14,7 @@
             padding: 10px;
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
+            overflow-y: auto;
         }
     </style>
     <!-- Include Leaflet.js for the map -->
@@ -41,7 +42,6 @@
         // Function to fetch and filter JSON data for Route 27
         async function fetchBusData() {
             const corsProxy = 'https://corsproxy.io/?';
-            //const corsProxy = 'https://cors-proxy.htmldriven.com/?';
             const apiUrl = 'http://gtfs.ltconline.ca/Vehicle/VehiclePositions.json';
             const response = await fetch(corsProxy + encodeURIComponent(apiUrl));
             
@@ -52,9 +52,13 @@
             }
 
             const data = await response.json();
+            
+            // Get current time and format it
+            const now = new Date();
+            const timestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
             // Clear bus-info display area
-            document.getElementById('bus-info').innerHTML = '';
+            document.getElementById('bus-info').innerHTML = `<strong>Last Updated:</strong> ${timestamp} <br><br>`;
 
             // Filter the data for Route 27
             data.entity.forEach(bus => {
@@ -92,8 +96,7 @@
                         <strong>Bus ID:</strong> ${busId} 
                         | <strong>Latitude:</strong> ${position.latitude} 
                         | <strong>Longitude:</strong> ${position.longitude} 
-                        | <strong>Bearing:</strong> ${bearing}°
-                        | <strong>Timestamp:<strong. ${timestamp} <br>
+                        | <strong>Bearing:</strong> ${bearing}° <br>
                     `;
                 }
             });
