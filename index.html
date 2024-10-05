@@ -28,7 +28,7 @@
         
         // Function to fetch and filter JSON data for Route 27
         async function fetchBusData() {
-            const response = await fetch('https://gtfs.ltconline.ca/Vehicle/VehiclePositions.json');
+            const response = await fetch('http://gtfs.ltconline.ca/Vehicle/VehiclePositions.json');
             const data = await response.json();
             
             // Clear all existing markers
