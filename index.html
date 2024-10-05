@@ -30,15 +30,11 @@
             maxZoom: 19
         }).addTo(map);
 
-        // Proxy URL to bypass CORS issues
-        const proxyUrl = 'https://thingproxy.freeboard.io/fetch/';
-        const targetUrl = 'http://gtfs.ltconline.ca/Vehicle/VehiclePositions.json';
-
         // Function to fetch and filter JSON data for Route 27
         async function fetchBusData() {
             try {
-                const response = await fetch(proxyUrl + targetUrl);
-
+                const response = await fetch('http://gtfs.ltconline.ca/Vehicle/VehiclePositions.json');
+                
                 // Check if the response is okay
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
