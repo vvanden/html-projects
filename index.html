@@ -364,9 +364,7 @@
 
         // Function to fetch and filter JSON data for Route 27
         async function fetchBusData() {
-            //const corsProxy = 'https://corsproxy.io/?';
-            //const corsProxy = 'https://cors-proxy.htmldriven.com/?';
-            const corsProxy = 'https://api.allorigins.win/raw?';
+            const corsProxy = 'https://corsproxy.io/?';
             const apiUrl = 'http://gtfs.ltconline.ca/Vehicle/VehiclePositions.json';
             const response = await fetch(corsProxy + encodeURIComponent(apiUrl));
             
