@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bus Tracker - Route 27</title>
+    <title>Bus Tracker - Route 27 with Route Line</title>
     <style>
         #map {
             height: 80vh;
@@ -17,88 +17,418 @@
             overflow-y: auto;
         }
     </style>
+    <!-- Include Leaflet.js for the map -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <!-- Include leaflet-rotatedmarker plugin for rotating the marker -->
     <script src="https://unpkg.com/leaflet-rotatedmarker/leaflet.rotatedMarker.js"></script>
 </head>
 <body>
     <div id="map"></div>
-    <div id="bus-info"></div> 
+    <div id="bus-info"></div> <!-- This will display bus information -->
     
     <script>
+        // Initialize the map and set the view to a default location
         var map = L.map('map').setView([43.008837, -81.247693], 15);
+
+        // Load map tiles from OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 15
         }).addTo(map); 
         
-        var busMarkers = {};
-        
-        async function fetchVehicleData() {
-            const apiUrl = 'https://api.transittracker.ca/v2/agencies/ltc/vehicles?geojson=';
+        // Coordinates for polyline (add all 309 coordinates here)
+        var routeCoordinates = [
+            [43.013319, -81.199174],
+            [43.013533, -81.199287],
+            [43.013318, -81.199172],
+            [43.013317, -81.199172],
+            [43.013311, -81.199165],
+            [43.01331, -81.199164],
+            [43.013309, -81.199162],
+            [43.013308, -81.199162],
+            [43.013302, -81.199153],
+            [43.013301, -81.199152],
+            [43.0133, -81.19915],
+            [43.013299, -81.199149],
+            [43.013294, -81.199141],
+            [43.013294, -81.19914],
+            [43.013291, -81.199135],
+            [43.01329, -81.199134],
+            [43.013287, -81.199128],
+            [43.013287, -81.199127],
+            [43.013282, -81.199116],
+            [43.013282, -81.199115],
+            [43.013281, -81.199114],
+            [43.013278, -81.199104],
+            [43.013278, -81.199103],
+            [43.013274, -81.199092],
+            [43.013274, -81.199091],
+            [43.013273, -81.199085],
+            [43.013272, -81.199084],
+            [43.013272, -81.199079],
+            [43.013271, -81.199078],
+            [43.01327, -81.199067],
+            [43.013269, -81.199066],
+            [43.013268, -81.199055],
+            [43.013268, -81.199053],
+            [43.013268, -81.199044],
+            [43.013268, -81.199042],
+            [43.013268, -81.19903],
+            [43.013268, -81.199029],
+            [43.013269, -81.199018],
+            [43.013269, -81.199017],
+            [43.01327, -81.199006],
+            [43.01327, -81.199005],
+            [43.013272, -81.198994],
+            [43.013272, -81.198993],
+            [43.013273, -81.198991],
+            [43.013275, -81.198981],
+            [43.013276, -81.19898],
+            [43.013279, -81.198969],
+            [43.013279, -81.198967],
+            [43.013281, -81.198963],
+            [43.013425, -81.198469],
+            [43.013425, -81.198468],
+            [43.013426, -81.198468],
+            [43.013429, -81.198466],
+            [43.013429, -81.198465],
+            [43.013434, -81.198462],
+            [43.013435, -81.198462],
+            [43.013443, -81.198457],
+            [43.013444, -81.198457],
+            [43.013452, -81.198454],
+            [43.013453, -81.198453],
+            [43.013461, -81.198451],
+            [43.013462, -81.198451],
+            [43.01347, -81.19845],
+            [43.013471, -81.19845],
+            [43.013479, -81.198449],
+            [43.01348, -81.198449],
+            [43.013488, -81.19845],
+            [43.013489, -81.19845],
+            [43.013497, -81.198452],
+            [43.013498, -81.198452],
+            [43.013503, -81.198453],
+            [43.013504, -81.198454],
+            [43.013506, -81.198455],
+            [43.013507, -81.198455],
+            [43.013515, -81.198458],
+            [43.013516, -81.198459],
+            [43.01352, -81.198461],
+            [43.013809, -81.198608],
+            [43.013811, -81.1986],
+            [43.013984, -81.197977],
+            [43.014302, -81.196828],
+            [43.01438, -81.196535],
+            [43.014719, -81.19672],
+            [43.014814, -81.196789],
+            [43.014926, -81.196892],
+            [43.015076, -81.197049],
+            [43.01517, -81.197182],
+            [43.015344, -81.197511],
+            [43.015373, -81.197573],
+            [43.015396, -81.197648],
+            [43.015476, -81.197921],
+            [43.015502, -81.198065],
+            [43.015788, -81.200239],
+            [43.015833, -81.200451],
+            [43.015947, -81.200784],
+            [43.016023, -81.200936],
+            [43.016128, -81.201104],
+            [43.016261, -81.201287],
+            [43.016412, -81.201442],
+            [43.016579, -81.201563],
+            [43.017204, -81.201885],
+            [43.020575, -81.203535],
+            [43.023037, -81.204772],
+            [43.022131, -81.207884],
+            [43.021722, -81.209326],
+            [43.021467, -81.210192],
+            [43.019909, -81.215502],
+            [43.01924, -81.217792],
+            [43.018621, -81.21994],
+            [43.017475, -81.223932],
+            [43.017329, -81.224434],
+            [43.016839, -81.226097],
+            [43.016241, -81.228123],
+            [43.015742, -81.230069],
+            [43.015501, -81.230943],
+            [43.015329, -81.231536],
+            [43.015935, -81.231847],
+            [43.016205, -81.231983],
+            [43.01631, -81.232021],
+            [43.016451, -81.232057],
+            [43.016559, -81.232072],
+            [43.016703, -81.232076],
+            [43.016847, -81.232063],
+            [43.016971, -81.232037],
+            [43.017463, -81.231886],
+            [43.017607, -81.231869],
+            [43.017769, -81.231866],
+            [43.017982, -81.231911],
+            [43.018086, -81.23195],
+            [43.018221, -81.232018],
+            [43.018412, -81.232155],
+            [43.018502, -81.232237],
+            [43.0186, -81.232345],
+            [43.018727, -81.232519],
+            [43.018816, -81.232673],
+            [43.018911, -81.232881],
+            [43.018973, -81.233058],
+            [43.019031, -81.233291],
+            [43.019067, -81.233531],
+            [43.01908, -81.233726],
+            [43.019097, -81.234364],
+            [43.019125, -81.234414],
+            [43.0191, -81.234462],
+            [43.019111, -81.234805],
+            [43.019135, -81.234949],
+            [43.019183, -81.235134],
+            [43.019261, -81.235354],
+            [43.019339, -81.23552],
+            [43.019452, -81.23571],
+            [43.019569, -81.235863],
+            [43.019713, -81.236011],
+            [43.019869, -81.236132],
+            [43.020403, -81.236427],
+            [43.020155, -81.237286],
+            [43.019973, -81.237886],
+            [43.019747, -81.23868],
+            [43.019379, -81.239916],
+            [43.019139, -81.24072],
+            [43.019038, -81.241092],
+            [43.018952, -81.241388],
+            [43.018845, -81.241779],
+            [43.01779, -81.245392],
+            [43.017605, -81.246006],
+            [43.017188, -81.245816],
+            [43.016275, -81.245371],
+            [43.014392, -81.244427],
+            [43.012131, -81.243322],
+            [43.011853, -81.243123],
+            [43.011352, -81.244792],
+            [43.011127, -81.245614],
+            [43.01104, -81.245732],
+            [43.010966, -81.245777],
+            [43.01085, -81.245799],
+            [43.010704, -81.245768],
+            [43.010443, -81.245668],
+            [43.010277, -81.245578],
+            [43.009512, -81.245188],
+            [43.009127, -81.246566],
+            [43.009054, -81.246825],
+            [43.008739, -81.247958],
+            [43.009229, -81.248212],
+            [43.009332, -81.24828],
+            [43.009499, -81.248417],
+            [43.009576, -81.248515],
+            [43.009647, -81.248625],
+            [43.009696, -81.248716],
+            [43.009758, -81.248859],
+            [43.009882, -81.2492],
+            [43.009922, -81.249362],
+            [43.009926, -81.249405],
+            [43.009931, -81.24945],
+            [43.009924, -81.249559],
+            [43.009903, -81.249657],
+            [43.009763, -81.250134],
+            [43.009381, -81.251446],
+            [43.009033, -81.252612],
+            [43.008561, -81.254247],
+            [43.008224, -81.255376],
+            [43.007732, -81.257014],
+            [43.007379, -81.258196],
+            [43.007078, -81.259208],
+            [43.008026, -81.260191],
+            [43.009098, -81.261314],
+            [43.007768, -81.265803],
+            [43.00764, -81.26624],
+            [43.007591, -81.266551],
+            [43.007587, -81.266803],
+            [43.007603, -81.266979],
+            [43.007881, -81.268985],
+            [43.008026, -81.269936],
+            [43.008075, -81.270258],
+            [43.008127, -81.270434],
+            [43.008208, -81.270592],
+            [43.008281, -81.27071],
+            [43.008367, -81.270822],
+            [43.00871, -81.271122],
+            [43.008848, -81.271223],
+            [43.00903, -81.271399],
+            [43.009103, -81.271493],
+            [43.009154, -81.271576],
+            [43.00934, -81.271808],
+            [43.009433, -81.271823],
+            [43.009554, -81.271871],
+            [43.010026, -81.272136],
+            [43.010104, -81.27216],
+            [43.01022, -81.272167],
+            [43.010306, -81.272231],
+            [43.01034, -81.27232],
+            [43.01034, -81.272425],
+            [43.010322, -81.272542],
+            [43.010201, -81.273005],
+            [43.009856, -81.274146],
+            [43.009781, -81.274321],
+            [43.009827, -81.274761],
+            [43.009863, -81.275015],
+            [43.009896, -81.275161],
+            [43.010132, -81.275727],
+            [43.010195, -81.275925],
+            [43.010243, -81.27609],
+            [43.01027, -81.276215],
+            [43.010296, -81.27635],
+            [43.010305, -81.276466],
+            [43.01031, -81.276594],
+            [43.010314, -81.276789],
+            [43.010294, -81.277357],
+            [43.007856, -81.277107],
+            [43.005947, -81.276942],
+            [43.003691, -81.276687],
+            [43.002079, -81.276529],
+            [43.001261, -81.279298],
+            [43.000601, -81.281507],
+            [43.000229, -81.282741],
+            [43.000067, -81.28328],
+            [42.999421, -81.285421],
+            [42.999001, -81.286811],
+            [42.99875, -81.287685],
+            [42.998426, -81.288883],
+            [42.997993, -81.290373],
+            [42.997713, -81.291337],
+            [42.997342, -81.292613],
+            [42.997156, -81.293255],
+            [42.996538, -81.29536],
+            [42.996148, -81.29669],
+            [42.995917, -81.297477],
+            [42.995564, -81.29875],
+            [42.994756, -81.298294],
+            [42.99276, -81.29726],
+            [42.992409, -81.297078],
+            [42.989734, -81.295692],
+            [42.988899, -81.29848],
+            [42.988385, -81.300205],
+            [42.98798, -81.300026],
+            [42.987459, -81.299785],
+            [42.985827, -81.298988],
+            [42.985512, -81.298832],
+            [42.985414, -81.298668],
+            [42.985215, -81.298311],
+            [42.985155, -81.298162],
+            [42.984955, -81.297672],
+            [42.984929, -81.297609],
+            [42.984914, -81.297577],
+            [42.984899, -81.297545],
+            [42.984884, -81.297514],
+            [42.984868, -81.297483],
+            [42.984852, -81.297452],
+            [42.984836, -81.297422],
+            [42.984819, -81.297392],
+            [42.984802, -81.297363],
+            [42.984784, -81.297334],
+            [42.984766, -81.297305],
+            [42.984748, -81.297277],
+            [42.984729, -81.297249],
+            [42.98471, -81.297222],
+            [42.984691, -81.297195],
+            [42.984671, -81.297169],
+            [42.984651, -81.297143],
+            [42.98463, -81.297117],
+            [42.98461, -81.297092],
+            [42.984589, -81.297068],
+            [42.984567, -81.297044],
+            [42.984546, -81.297021],
+            [42.984524, -81.296998],
+            [42.984501, -81.296975],
+            [42.984479, -81.296953],
+            [42.984456, -81.296932],
+            [42.984433, -81.296911],
+            [42.98441, -81.296891],
+            [42.984386, -81.296872],
+            [42.982863, -81.296042],
+        ];
 
-            const response = await fetch(apiUrl, {
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json",
-                    "Accept-Language": "en"
-                }
-            });
+        // Create a polyline with the specified coordinates and a blue color
+        var polyline = L.polyline(routeCoordinates, {
+            color: 'blue',    // Line color
+            weight: 5,        // Line thickness
+            opacity: 0.8,     // Line opacity
+        }).addTo(map);
+
+        // Optionally, zoom the map to fit the polyline
+        map.fitBounds(polyline.getBounds());
+
+        // Object to store markers by bus ID
+        var busMarkers = {};
+
+        // Function to fetch and filter JSON data for Route 27
+        async function fetchBusData() {
+            const corsProxy = 'https://corsproxy.io/?';
+            const apiUrl = 'http://gtfs.ltconline.ca/Vehicle/VehiclePositions.json';
+            const response = await fetch(corsProxy + encodeURIComponent(apiUrl));
             
+            // Check if response is OK
             if (!response.ok) {
-                console.error('Failed to fetch vehicle data:', response.statusText);
+                console.error('Failed to fetch the data:', response.statusText);
                 return;
             }
 
             const data = await response.json();
             
-            // Clear bus-info display
+            // Clear bus-info display area
             document.getElementById('bus-info').innerHTML = "";
 
-            // Process each vehicle in the data
-            data.data.forEach(vehicle => {
-                const { lat, lon } = vehicle.position;
-                const busId = vehicle.label;
-                const bearing = vehicle.bearing;
-                const formattedBusTime = new Date(vehicle.timestamp * 1000).toLocaleTimeString([], {
-                    hour: '2-digit', minute: '2-digit', second: '2-digit'
-                });
+            // Filter the data for Route 27
+            data.entity.forEach(bus => {
+                if (bus.vehicle.trip.route_id === "27") {
+                    const position = bus.vehicle.position;
+                    const busId = bus.vehicle.vehicle.label;
+                    const bearing = position.bearing;
+                    
+                    // Convert the timestamp from Unix format to a readable date/time
+                    const busTimestamp = new Date(bus.vehicle.timestamp * 1000);  // assuming timestamp is in seconds
+                    const formattedBusTime = busTimestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-                // If marker for this bus doesn't exist, create one
-                if (!busMarkers[busId]) {
-                    var busIcon = L.icon({
-                        iconUrl: 'bus-icon.png',
-                        iconSize: [32, 32],
-                        iconAnchor: [16, 16],
-                    });
+                    // Check if marker for this bus already exists
+                    if (!busMarkers[busId]) {
+                        // Create a new marker for the bus
+                        var busIcon = L.icon({
+                            iconUrl: 'bus-icon.png', // Use a custom bus icon
+                            iconSize: [32, 32],      // size of the icon
+                            iconAnchor: [16, 16],    // point of the icon which will correspond to marker's location
+                        });
 
-                    const marker = L.marker([lat, lon], {
-                        icon: busIcon,
-                        rotationAngle: bearing
-                    }).addTo(map)
-                    .bindPopup(`Bus ID: ${busId} <br> Bearing: ${bearing}° <br> Timestamp: ${formattedBusTime}`);
+                        const marker = L.marker([position.latitude, position.longitude], { 
+                            icon: busIcon,
+                            rotationAngle: bearing // Set initial rotation based on bearing
+                        }).addTo(map)
+                          .bindPopup(`Bus ID: ${busId} <br> Bearing: ${bearing}° <br> Timestamp: ${formattedBusTime}`);
 
-                    busMarkers[busId] = marker;
-                } else {
-                    // Update the existing marker
-                    const marker = busMarkers[busId];
-                    marker.setLatLng([lat, lon]);
-                    marker.setRotationAngle(bearing);
+                        // Store the marker in the busMarkers object
+                        busMarkers[busId] = marker;
+                    } else {
+                        // Update the existing marker's position and rotation
+                        const marker = busMarkers[busId];
+                        marker.setLatLng([position.latitude, position.longitude]);
+                        marker.setRotationAngle(bearing); // Update the rotation angle
+                    }
+
+                    // Append bus information to the display div with timestamp
+                    document.getElementById('bus-info').innerHTML += `
+                        <strong>Bus ID:</strong> ${busId} 
+                        | <strong>Latitude:</strong> ${position.latitude} 
+                        | <strong>Longitude:</strong> ${position.longitude} 
+                        | <strong>Bearing:</strong> ${bearing}° 
+                        | <strong>Timestamp:</strong> ${formattedBusTime} <br>
+                    `;
                 }
-
-                // Update bus info
-                document.getElementById('bus-info').innerHTML += `
-                    <strong>Bus ID:</strong> ${busId} 
-                    | <strong>Latitude:</strong> ${lat} 
-                    | <strong>Longitude:</strong> ${lon} 
-                    | <strong>Bearing:</strong> ${bearing}° 
-                    | <strong>Timestamp:</strong> ${formattedBusTime} <br>
-                `;
             });
         }
 
         // Refresh data every 30 seconds
-        setInterval(fetchVehicleData, 30000);
-        fetchVehicleData();
+        setInterval(fetchBusData, 30000);
+        fetchBusData();
     </script>
 </body>
 </html>
